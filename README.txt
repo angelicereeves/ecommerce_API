@@ -40,7 +40,9 @@ Functional CRUD operations, many-to-many relationships between orders and produc
 
 #Setup Instructions
 
-1. Clone the repository - 
+1. Clone the repository - https://github.com/angelicereeves/ecommerce_API
+git clone https://github.com/angelicereeves/ecommerce_API
+cd ecommerce_API
 
 2. set up a venv: 
 python -m venv venv
