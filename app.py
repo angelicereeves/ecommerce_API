@@ -2,15 +2,11 @@
 from __future__ import annotations
 from typing import List, Optional
 from datetime import datetime
-
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from marshmallow import ValidationError, validates, validate, fields
-from sqlalchemy import (
-    ForeignKey, Table, Column, String, Integer, Float, DateTime,
-    UniqueConstraint, select
-)
+from marshmallow import ValidationError, validates, validate, fields, Schema
+from sqlalchemy import ForeignKey, Table, Column, String, Integer, Float, DateTime, UniqueConstraint, select
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.exc import IntegrityError
 import os
@@ -19,12 +15,10 @@ import os
 # Flask & DB config
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'mysql+mysqlconnector://root:0829AmDAjD23%3C3%21@localhost/ecommerce_api'
-)
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:0829AmDAjD23<3!@localhost/ecommerce_api'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+
 
 
 # Declarative base
@@ -101,16 +95,19 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
 
 class ProductSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Product
-
-    product_name = ma.auto_field(required=True, validate=validate.Length(min=1)) # validate that its at least one character
-    price = ma.auto_field(required=True)
+    product_name = fields.String(required=True)
+    price = fields.Float(required=True)
 
     @validates("price")
-    def validate_price(self, value):
-        if value < 0:
-            raise ValidationError("Price must be non-negative.")
+    def validate_price(self, value, **kwargs):   # <- accept future kwargs
+        if value is None:
+            raise ValidationError("Price is required.")
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            raise ValidationError("Price must be a number.")
+        if v < 0:
+            raise ValidationError("Price must be >= 0.")
 
 
 class OrderSchema(ma.SQLAlchemyAutoSchema):
